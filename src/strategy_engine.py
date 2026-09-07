@@ -82,10 +82,10 @@ def evaluate_pit_window(current_lap: int, total_laps: int, current_compound: str
 
     if time_delta > 1.5:
         recommendation = "BOX THIS LAP"
-        reason = f"Свежий Hard нивелирует пит-стоп и сбережет {abs(time_delta):.1f} сек за {horizon} кругов."
+        reason = f"Fresh Hard compound offsets pit-loss, yielding a net gain of {abs(time_delta):.1f}s over {horizon} laps."
     else:
         recommendation = "STAY OUT"
-        reason = f"Шины еще в рабочем окне. Заезд сейчас приведет к чистой потере {abs(time_delta):.1f} сек."
+        reason = f"Tyres remain within the optimal operating window. Pitting now incurs a net penalty of {abs(time_delta):.1f}s."
 
     return {
         "action": recommendation,

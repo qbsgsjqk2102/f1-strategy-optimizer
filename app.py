@@ -6,25 +6,25 @@ from src.strategy_engine import TyreDegradationModel, evaluate_pit_window
 st.set_page_config(page_title="F1 Dynamic Strategy Optimizer", layout="wide")
 
 st.title("🏎️ F1 Dynamic Race Strategy Optimizer")
-st.markdown("Интерактивный инструмент принятия тактических решений на основе телеметрии и регрессионного анализа износа шин.")
+st.markdown("An interactive decision-support tool simulating telemetry-driven race strategies and tyre degradation dynamics.")
 
 @st.cache_data
 def get_cached_data():
     return load_race_data(2023, "Bahrain")
 
-with st.spinner("Загрузка и фильтрация телеметрии гонки..."):
+with st.spinner("Loading and filtering race telemetry..."):
     laps_df = get_cached_data()
 
 model = TyreDegradationModel(laps_df)
 
-# Боковая панель управления (Live Race State)
-st.sidebar.header("Параметры текущей гонки")
-current_lap = st.sidebar.slider("Текущий круг гонки", min_value=1, max_value=57, value=17)
-compound = st.sidebar.selectbox("Текущий компаунд", ["SOFT", "MEDIUM"])
-tyre_age = st.sidebar.number_input("Возраст шины (круги)", min_value=1, max_value=40, value=17)
-safety_car = st.sidebar.toggle("🚨 Выезд Safety Car / VSC", value=False)
+# Sidebar: Race State Controls
+st.sidebar.header("Current Race State")
+current_lap = st.sidebar.slider("Current Lap", min_value=1, max_value=57, value=17)
+compound = st.sidebar.selectbox("Current Compound", ["SOFT", "MEDIUM"])
+tyre_age = st.sidebar.number_input("Tyre Age (Laps)", min_value=1, max_value=40, value=17)
+safety_car = st.sidebar.toggle("🚨 Safety Car / VSC Deployed", value=False)
 
-# Анализ решения
+# Decision Engine Evaluation
 decision = evaluate_pit_window(
     current_lap=current_lap,
     total_laps=57,
@@ -34,24 +34,24 @@ decision = evaluate_pit_window(
     safety_car=safety_car
 )
 
-# Вывод карточек с решением
+# Output Recommendation Cards
 col1, col2 = st.columns(2)
 with col1:
     if decision["action"] == "BOX THIS LAP":
-        st.error(f"### Рекомендация: {decision['action']}")
+        st.error(f"### Recommendation: {decision['action']}")
     else:
-        st.success(f"### Рекомендация: {decision['action']}")
+        st.success(f"### Recommendation: {decision['action']}")
     st.write(decision["reason"])
 
 with col2:
     st.metric(
-        label="Дельта времени (Box vs Stay)",
-        value=f"{decision['time_delta']:+.2f} сек",
-        delta="В пользу пит-стопа" if decision["time_delta"] > 0 else "В пользу трассы"
+        label="Net Time Delta (Box vs Stay)",
+        value=f"{decision['time_delta']:+.2f} s",
+        delta="Favors Pit Stop" if decision["time_delta"] > 0 else "Favors Staying Out"
     )
 
-# Построение графиков деградации
-st.subheader("Модель деградации темпа по составам резины")
+# Plotting Degradation Curves
+st.subheader("Tyre Pace Degradation Models")
 fig = go.Figure()
 tyre_ages = list(range(1, 31))
 
@@ -59,12 +59,18 @@ colors = {"SOFT": "red", "MEDIUM": "gold", "HARD": "white"}
 for comp in ["SOFT", "MEDIUM", "HARD"]:
     if comp in model.models:
         preds = [model.predict_lap_time(comp, age) for age in tyre_ages]
-        fig.add_trace(go.Scatter(x=tyre_ages, y=preds, mode="lines+markers", name=comp, line=dict(color=colors[comp])))
+        fig.add_trace(go.Scatter(
+            x=tyre_ages,
+            y=preds,
+            mode="lines+markers",
+            name=comp,
+            line=dict(color=colors.get(comp, "cyan"))
+        ))
 
 fig.update_layout(
     template="plotly_dark",
-    xaxis_title="Возраст шины (круги)",
-    yaxis_title="Ожидаемое время круга (сек)",
+    xaxis_title="Tyre Age (Laps)",
+    yaxis_title="Expected Lap Time (seconds)",
     hovermode="x unified"
 )
 st.plotly_chart(fig, use_container_width=True)
