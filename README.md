@@ -51,5 +51,5 @@ $$T_{\text{Box}} = \Delta t_{\text{PitLoss}} + \sum_{i=0}^{H-1} \widehat{\text{L
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/](https://github.com/)qbsgsjqk2102/f1-dynamic-strategy-optimizer.git
-   cd f1-dynamic-strategy-optimizer
+   git clone [https://github.com/](https://github.com/)qbsgsjqk2102/f1-strategy-optimizer.git
+   cd f1-strategy-optimizer
